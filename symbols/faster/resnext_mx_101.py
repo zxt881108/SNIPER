@@ -21,16 +21,8 @@ Original author Wei Wu
 
 Implemented the following paper:
 Saining Xie, Ross Girshick, Piotr Dollar, Zhuowen Tu, Kaiming He. "Aggregated Residual Transformations for Deep Neural Network"
+
 '''
-
-# --------------------------------------------------------------
-# SNIPER: Efficient Multi-Scale Training
-# Licensed under The Apache-2.0 License [see LICENSE for details]
-# Training Module
-# by Mahyar Najibi and Bharat Singh
-# Fast-RCNN symbol
-# --------------------------------------------------------------
-
 import mxnet as mx
 import numpy as np
 import cPickle
