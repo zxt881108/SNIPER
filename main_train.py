@@ -15,7 +15,7 @@ from iterators.MNIteratorE2E import MNIteratorE2E
 import sys
 sys.path.insert(0, 'lib')
 from symbols.faster import *
-from configs.faster.default_configs import config, update_config
+from configs.faster.default_configs import config, update_config, update_config_from_list
 import mxnet as mx
 from train_utils import metric
 from train_utils.utils import get_optim_params, get_fixed_param_names, create_logger, load_param
@@ -23,10 +23,10 @@ from iterators.PrefetchingIter import PrefetchingIter
 
 from data_utils.load_data import load_proposal_roidb, merge_roidb, filter_roidb
 from bbox.bbox_regression import add_bbox_regression_targets
-from argparse import ArgumentParser
+import argparse
 
 def parser():
-    arg_parser = ArgumentParser('SNIPER training module')
+    arg_parser = argparse.ArgumentParser('SNIPER training module')
     arg_parser.add_argument('--cfg', dest='cfg', help='Path to the config file',
     							default='configs/faster/sniper_res101_e2e.yml',type=str)
     arg_parser.add_argument('--display', dest='display', help='Number of epochs between displaying loss info',
@@ -34,6 +34,8 @@ def parser():
     arg_parser.add_argument('--momentum', dest='momentum', help='BN momentum', default=0.995, type=float)
     arg_parser.add_argument('--save_prefix', dest='save_prefix', help='Prefix used for snapshotting the network',
                             default='SNIPER', type=str)
+    arg_parser.add_argument('--set', dest='set_cfg_list', help='Set the configuration fields from command line',
+                            default=None, nargs=argparse.REMAINDER)
 
     return arg_parser.parse_args()
 
@@ -42,6 +44,9 @@ if __name__ == '__main__':
 
     args = parser()
     update_config(args.cfg)
+    if args.set_cfg_list:
+        update_config_from_list(args.set_cfg_list)
+
     context = [mx.gpu(int(gpu)) for gpu in config.gpus.split(',')]
     nGPUs = len(context)
     batch_size = nGPUs * config.TRAIN.BATCH_IMAGES
@@ -55,7 +60,7 @@ if __name__ == '__main__':
         config.dataset.dataset_path,
         proposal=config.dataset.proposal, append_gt=True, flip=config.TRAIN.FLIP,
         result_path=config.output_path,
-        proposal_path=config.proposal_path, load_mask=config.TRAIN.WITH_MASK)
+        proposal_path=config.proposal_path, load_mask=config.TRAIN.WITH_MASK, only_gt=not config.TRAIN.USE_NEG_CHIPS)
         for image_set in image_sets]
 
     roidb = merge_roidb(roidbs)
